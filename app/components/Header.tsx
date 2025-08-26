@@ -18,6 +18,7 @@ export default function Header({ studentNumber }: HeaderProps) {
     { name: 'Escape Room', path: '/escape-room' },
     { name: 'Coding Races', path: '/coding-races' },
     { name: 'Court Room', path: '/court-room' },
+    { name: 'Tabs Page', path: '/tabpage' },
   ];
 
   useEffect(() => {
