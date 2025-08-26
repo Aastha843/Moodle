@@ -26,8 +26,8 @@ export default function About() {
         <h1>About Me</h1>
         <p>Name: {studentName}</p>
         <p>Student Number: {studentNumber}</p>
-        <video controls style={{ width: '100%', marginTop: '20px' }}>
-          <source src="/example-video.mp4" type="video/mp4" />
+        <video controls style={{ width: '50%', marginTop: '20px' }}>
+          <source src="/VIDEO.mp4" type="video/mp4" />
         </video>
       </main>
       <Footer studentName={studentName} studentNumber={studentNumber} />
