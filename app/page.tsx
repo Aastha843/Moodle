@@ -11,7 +11,7 @@ export default function HomePage() {
   const studentNumber = '21775745';
   const studentName = 'Aastha Acharya';
 
-  // Tabs state (persist to localStorage)
+  
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -50,7 +50,6 @@ export default function HomePage() {
     setTabs([{ id: Date.now(), heading: 'Tab 1', content: 'Content 1' }]);
   }
 
-  // Output: inline-only CSS + plain JS (no classes)
   const outputHtml = useMemo(() => {
     const css =
       'body{font-family:Arial,sans-serif;margin:24px}' +
@@ -124,8 +123,7 @@ export default function HomePage() {
       <main className="container">
         <h1 style={{ marginTop: 0 }}>Tabs Builder (Home)</h1>
         <p style={{ marginTop: 0 }}>
-          Add (+) / remove (−) tabs, edit headings and content. Tabs persist in <b>localStorage</b>. Generate output
-          HTML with <b>inline CSS only</b> (no classes). Use in your video to show 1, 3 and 5 tabs.
+          Add (+) / remove (-) tabs, edit headings and content.
         </p>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
