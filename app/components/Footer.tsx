@@ -1,22 +1,18 @@
-'use client';
-interface FooterProps {
-  studentName:string;
-  studentNumber:string;
-}
+"use client";
 
-export default function Footer({studentName,studentNumber}:FooterProps){
-  const date=new Date().toLocaleDateString();
+type FooterProps = {
+  studentNumber?: string;
+  studentName?: string;
+};
 
+export default function Footer({
+  studentNumber = "21775745",
+  studentName = "Aastha Acharya",
+}: FooterProps) {
+  const today = new Date().toLocaleDateString("en-AU");
   return (
-    <footer
-      style={{
-        padding:'10px 20px',
-        marginTop:'20px',
-        borderTop:'1px solid #ccc',
-        textAlign:'center',
-      }}
-    >
-      &copy;{date}{studentName}({studentNumber})
+    <footer className="footer" role="contentinfo">
+      &copy;{new Date().getFullYear()} {studentName} ({studentNumber}) · {today}
     </footer>
   );
 }

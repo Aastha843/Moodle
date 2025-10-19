@@ -1,36 +1,28 @@
-'use client';
-import{ useState, useEffect } from'react';
-import Header from'../components/Header';
-import Footer from'../components/Footer';
-import Cookies from'js-cookie';
+"use client";
 
-export default function About(){
-  const studentNumber='21775745';
-  const studentName='Aastha Acharya';
-  const [darkMode,setDarkMode]=useState(false);
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
-  useEffect(()=>{
-    const savedMode=Cookies.get('darkMode')==='true';
-    setDarkMode(savedMode);
-  },[]);
+export default function AboutPage() {
+  const studentNumber = "21775745";
+  const studentName = "Aastha Acharya";
 
-  const toggleDarkMode=()=>{
-    setDarkMode(!darkMode);
-    Cookies.set('darkMode',String(!darkMode));
-  };
+  return (
+    <div>
+      <Header studentNumber={studentNumber} studentName={studentName} />
+      <main className="container">
+        <h1 style={{ marginTop: 0 }}>About</h1>
+        <p><strong>Name:</strong> {studentName}</p>
+        <p><strong>Student Number:</strong> {studentNumber}</p>
 
-  return(
-    <div style={{minHeight:'100vh',backgroundColor:darkMode?'#222':'#fff',color:darkMode?'#fff':'#000'}}>
-      <Header studentNumber={studentNumber} />
-      <main style={{padding:20}}>
-        <h1>About Me</h1>
-        <p>Name:{studentName}</p>
-        <p>Student Number:{studentNumber}</p>
-        <video controls style={{ width:'50%',marginTop:'20px'}}>
-          <source src="/VIDEO.mp4" type="video/mp4" />
+        <h2>How to use this website (Video)</h2>
+        <p>Record a 3–8 min walkthrough and place it at <code>/public/how-to.mp4</code>.</p>
+        <video controls width={720} style={{ maxWidth: "100%", border: "1px solid #ccc" }}>
+          <source src="/how-to.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
         </video>
       </main>
-      <Footer studentName={studentName}studentNumber={studentNumber} />
+      <Footer studentName={studentName} studentNumber={studentNumber} />
     </div>
   );
 }

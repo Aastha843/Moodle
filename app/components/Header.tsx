@@ -1,123 +1,122 @@
 'use client';
-import { useState, useEffect }from'react';
-import Link from'next/link';
-import Cookies from'js-cookie';
 
-interface HeaderProps {
-  studentNumber:string;
-}
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
 
-export default function Header({ studentNumber }:HeaderProps) {
-  const[darkMode,setDarkMode]=useState(false);
-  const[activeTab,setActiveTab]=useState('/');
-  const[menuOpen,setMenuOpen]=useState(false);
+type HeaderProps = {
+  studentNumber?: string;
+  studentName?: string;
+};
 
-  const pages=[
-    { name:'Home',path:'/'},
-    { name:'About',path:'/about'},
-    { name:'Escape Room',path:'/escape-room'},
-    { name:'Coding Races',path:'/coding-races'},
-    { name:'Court Room',path:'/court-room'},
-    { name:'Tabs Page',path:'/tabpage'},
-  ];
+const LINKS = [
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+  { name: 'Coding Races', href: '/codingraces' },
+  { name: 'Escape Room', href: '/escaperoom' },
+  { name: 'Tabs Page', href: '/tabpage' },
+  { name: 'Court Room', href: '/courtroom' },
+];
+
+export default function Header({
+  studentNumber = '21775745',
+  studentName = 'Aastha Acharya',
+}: HeaderProps) {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dark, setDark] = useState(false);
+  const [active, setActive] = useState('/');
 
   useEffect(() => {
-    const savedMode=Cookies.get('darkMode')==='true';
-    const savedTab=Cookies.get('activeTab')||'/';
-    setDarkMode(savedMode);
-    setActiveTab(savedTab);
-  }, []);
 
-  const toggleDarkMode=()=>{
-    setDarkMode(!darkMode);
-    Cookies.set('darkMode',String(!darkMode));
-  };
+    const saved = localStorage.getItem('theme');
+    const prefersDark =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-  const changeTab = (tab:string)=>{
-    setActiveTab(tab);
-    Cookies.set('activeTab',tab);
+    const shouldDark = saved ? saved === 'dark' : prefersDark;
+    setDark(shouldDark);
+    document.documentElement.classList.toggle('dark', shouldDark);
+
+    // nav state
+    const savedTab = Cookies.get('activeTab');
+    setActive(savedTab || pathname || '/');
+  }, [pathname]);
+
+  function toggleTheme() {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+  }
+
+  function handleClick(href: string) {
+    setActive(href);
+    Cookies.set('activeTab', href, { expires: 7 });
     setMenuOpen(false);
-  };
+  }
 
-  const linkStyle=(tab:string)=>({
-    padding:'5px 10px',
-    margin:'0 5px',
-    borderRadius:'4px',
-    textDecoration:'none',
-    color: darkMode ?'#fff':'#000',
-    backgroundColor:activeTab===tab?(darkMode?'#555':'#ccc'):'transparent',
-  });
+  const linkClass = (href: string) =>
+    `nav-link ${pathname === href || active === href ? 'nav-link--active' : ''}`;
 
   return (
-    <header
-      style={{
-        padding:'10px 20px',
-        display:'flex',
-        justifyContent:'space-between',
-        alignItems:'center',
-        backgroundColor:darkMode?'#333':'#eee',
-        color:darkMode ?'#fff':'#000',
-        position:'relative',
-      }}
-    >
-      <div>{studentNumber}</div>
+    <header className="header" role="banner">
+     
+      <div className="header__left" aria-live="polite">
+        <strong>{studentName}</strong> · ID: <strong>{studentNumber}</strong>
+      </div>
 
-      {/* Top Navigation Bar */}
-      <nav style={{ display:'flex',gap:'5px'}}>
-        {pages.map((page)=>(
+  
+      <nav aria-label="Main" className="nav nav--desktop">
+        {LINKS.map((item) => (
           <Link
-            key={page.path}
-            href={page.path}
-            onClick={()=>changeTab(page.path)}
-            style={linkStyle(page.path)}
+            key={item.href}
+            href={item.href}
+            className={linkClass(item.href)}
+            onClick={() => handleClick(item.href)}
           >
-            {page.name}
+            {item.name}
           </Link>
         ))}
       </nav>
-
-      {/* Hamburger + Dark Mode */}
-      <div style={{display:'flex',alignItems:'center', gap:'10px'}}>
-        {/* Dark Mode Button */}
+      
+      <div className="header__actions">
         <button
-          onClick={toggleDarkMode}
-          style={{padding:'5px 10px',cursor:'pointer'}}
+          type="button"
+          onClick={toggleTheme}
+          className="btn"
+          aria-pressed={dark}
+          aria-label="Toggle dark mode"
+          title="Toggle dark mode"
         >
-          {darkMode?'Light Mode':'Dark Mode'}
+          {dark ? 'Light' : 'Dark'}
         </button>
 
-        {/* Hamburger Menu */}
-        <div
-          onClick={()=>setMenuOpen(!menuOpen)}
-          style={{fontSize:'24px',cursor:'pointer',userSelect:'none' }}
+        <button
+          type="button"
+          className="btn btn--icon nav__hamburger"
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
+          onClick={() => setMenuOpen((v) => !v)}
         >
-          <i className="bi bi-list"></i>
-        </div>
+          ☰
+        </button>
       </div>
 
-      {/* Hamburger Dropdown */}
-      {menuOpen&&(
-        <nav
-          style={{
-            position:'absolute',
-            top:'50px',
-            right:'20px',
-            backgroundColor:darkMode?'#333':'#eee',
-            padding:'10px',
-            borderRadius:'5px',
-            display:'flex',
-            flexDirection:'column',
-            gap:'5px',
-          }}
-        >
-          {pages.map((page)=>(
+      
+      {menuOpen && (
+        <nav id="mobile-menu" aria-label="Mobile" className="nav nav--mobile">
+          {LINKS.map((item) => (
             <Link
-              key={page.path+'-mobile'}
-              href={page.path}
-              onClick={()=>changeTab(page.path)}
-              style={linkStyle(page.path)}
+              key={item.href + '-m'}
+              href={item.href}
+              className={linkClass(item.href)}
+              onClick={() => handleClick(item.href)}
             >
-              {page.name}
+              {item.name}
             </Link>
           ))}
         </nav>
