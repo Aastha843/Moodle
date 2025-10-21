@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^6.17.1",
     "js-cookie": "^3.0.5",
     "next": "^15.4.6",
     "react": "^19.1.0",
@@ -19,6 +20,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "prisma": "^6.17.1",
     "typescript": "^5"
   }
 }
