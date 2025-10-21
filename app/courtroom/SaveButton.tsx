@@ -1,100 +1,139 @@
-// app/court-room/SaveButton.tsx
+// "use client";
+// import { useState } from "react";
+
+// export default function SaveButton({ getHtml }: { getHtml: () => string }) {
+//   const [status, setStatus] = useState<"idle"|"saving"|"done"|"error">("idle");
+//   const [lastId, setLastId] = useState<string | null>(null);
+
+//   async function handleSave() {
+//     try {
+//       setStatus("saving");
+//       const html = getHtml(); // must return full HTML string (<!DOCTYPE html>... )
+//       const res = await fetch("/api/snippets", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           title: `Court Room Output - ${new Date().toISOString()}`,
+//           html,
+//         }),
+//       });
+//       if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+//       const data = await res.json();
+//       setLastId(data.id);
+//       setStatus("done");
+//       console.log("[SaveButton] saved snippet", data);
+//     } catch (e) {
+//       console.error("[SaveButton] error", e);
+//       setStatus("error");
+//     }
+//   }
+
+//   return (
+//     <div className="flex items-center gap-3">
+//       <button
+//         onClick={handleSave}
+//         disabled={status === "saving"}
+//         className="px-4 py-2 rounded bg-black text-white"
+//       >
+//         {status === "saving" ? "Saving..." : "Save to DB"}
+//       </button>
+//       {status === "done" && lastId && <span>Saved ✓ (id: {lastId})</span>}
+//       {status === "error" && <span>Save failed. Try again.</span>}
+//     </div>
+//   );
+// }
 "use client";
-
-import { useCallback, useState } from "react";
-
+import { useState } from "react";
 
 type Props = {
-  getHtml?: () => string;
-  titlePrefix?: string; // optional custom title prefix
+  /** Must return a FULL HTML document string (<!DOCTYPE html> ... </html>) */
+  getHtml: () => string;
+  /** Optional: called after a successful save with the created id */
+  onSaved?: (id: string) => void;
 };
 
-export default function SaveButton({ getHtml, titlePrefix = "Court Room Output" }: Props) {
+export default function SaveButton({ getHtml, onSaved }: Props) {
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
   const [lastId, setLastId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string>("");
-
-  const buildHtml = useCallback((): string => {
-    try {
-      if (typeof getHtml === "function") {
-        const html = getHtml();
-        if (typeof html === "string" && html.trim().length > 0) return html;
-      }
-    } catch {
-      /* ignore and fallback */
-    }
-
-    return document.documentElement.outerHTML;
-  }, [getHtml]);
 
   async function handleSave() {
     try {
       setStatus("saving");
-      setMessage("");
+      setError(null);
       setLastId(null);
 
-      const html = buildHtml();
-      if (!html || !html.trim()) {
-        setStatus("error");
-        setMessage("No HTML to save.");
-        return;
+      const html = getHtml();
+      if (typeof html !== "string" || html.trim().length === 0) {
+        throw new Error("getHtml() returned an empty string. It must return a full HTML document.");
       }
-
-      const title = `${titlePrefix} - ${new Date().toISOString()}`;
 
       const res = await fetch("/api/snippets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, html }),
+        body: JSON.stringify({
+          title: `Court Room Output - ${new Date().toISOString()}`,
+          html,
+        }),
       });
 
       if (!res.ok) {
-        const problem = await safeJson(res);
-        throw new Error(problem?.error || `Save failed with status ${res.status}`);
+        const text = await res.text().catch(() => "");
+        throw new Error(`Save failed (${res.status}). ${text || ""}`);
       }
 
-      const created = await res.json();
-      setLastId(created?.id ?? null);
+      const data: { id: string } = await res.json();
+      setLastId(data.id);
       setStatus("done");
-      setMessage("Saved successfully.");
-    } catch (err: any) {
+      onSaved?.(data.id);
+      console.log("[SaveButton] saved snippet", data);
+    } catch (e: any) {
+      console.error("[SaveButton] error", e);
+      setError(e?.message || "Unknown error");
       setStatus("error");
-      setMessage(err?.message || "Unknown error while saving.");
     }
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={handleSave}
-        disabled={status === "saving"}
-        className="px-4 py-2 rounded bg-black text-white disabled:opacity-60"
-        aria-busy={status === "saving"}
-        aria-live="polite"
-      >
-        {status === "saving" ? "Saving..." : "Save to DB"}
-      </button>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={status === "saving"}
+          className="px-4 py-2 rounded bg-black text-white disabled:opacity-60"
+          aria-busy={status === "saving"}
+        >
+          {status === "saving" ? "Saving..." : "Save to DB"}
+        </button>
+
+        {status === "done" && lastId && (
+          <span className="text-green-700">
+            Saved  (id: {lastId})
+          </span>
+        )}
+
+        {status === "error" && (
+          <span className="text-red-700">
+            Save failed
+          </span>
+        )}
+      </div>
 
       {status === "done" && lastId && (
-        <span className="text-green-700">
-          Saved ✓ (id: <code>{lastId}</code>)
-        </span>
+        <a
+          className="underline text-blue-700 w-fit"
+          href={`/api/render?id=${encodeURIComponent(lastId)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View saved page 
+        </a>
       )}
 
-      {status === "error" && (
-        <span className="text-red-700">
-          Save failed. {message ? <>{message}</> : "Try again."}
-        </span>
+      {error && (
+        <pre className="text-sm text-red-700 whitespace-pre-wrap">{error}</pre>
       )}
     </div>
   );
 }
 
-
-async function safeJson(res: Response) {
-  try {
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
