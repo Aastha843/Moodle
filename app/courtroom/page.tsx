@@ -74,7 +74,6 @@ export default function CourtRoomPage() {
   const studentName = "Aastha Acharya";
 
   const [scenario, setScenario] = useState<ScenarioKey>("standard");
-
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const timerId = useRef<number | null>(null);
@@ -154,18 +153,27 @@ export default function CourtRoomPage() {
       }
     }
 
+    // --- SAFE urgent processing (no non-null assertions, no duplicates) ---
     const overdueUrgent = nextIssues.filter(
       (i) => i.urgentAt !== undefined && !i.urgentSent && time >= (i.urgentAt as number)
     );
     if (overdueUrgent.length) {
-      newMsgs.push(...overdueUrgent.map((i) => ISSUE_TEXT[i.key].urgent!));
+      const urgentMsgs: string[] = [];
+      for (const i of overdueUrgent) {
+        const msg = ISSUE_TEXT[i.key].urgent;
+        if (msg) urgentMsgs.push(msg);
+      }
+      if (urgentMsgs.length) newMsgs.push(...urgentMsgs);
 
-      const mapped = nextIssues.map((i) => (overdueUrgent.includes(i) ? { ...i, urgentSent: true } : i));
+      const mapped = nextIssues.map((i) =>
+        overdueUrgent.includes(i) ? { ...i, urgentSent: true } : i
+      );
       if (mapped !== nextIssues) {
         nextIssues = mapped;
         issuesChanged = true;
       }
     }
+    // ---------------------------------------------------------------------
 
     if (!courtAlert) {
       const overdueCourt = nextIssues.filter((i) => !i.courtSent && time >= i.courtAt);
@@ -189,7 +197,6 @@ export default function CourtRoomPage() {
 
   const bgUrl = courtAlert ? "/courtroom.png" : "/Desk.png";
 
-  
   function buildOutputHtml(): string {
     const issuesRows = issues
       .map((i) => {
@@ -363,4 +370,3 @@ export default function CourtRoomPage() {
     </div>
   );
 }
-
