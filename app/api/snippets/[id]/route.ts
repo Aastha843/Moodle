@@ -2,26 +2,31 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
-//READ
+// READ
 export async function GET(_req: Request, { params }: Params) {
+  const { id } = await params;
   try {
-    console.log("[GET /api/snippets/:id]", { id: params.id });
-    const item = await prisma.snippet.findUnique({ where: { id: params.id } });
+    console.log("[GET /api/snippets/:id]", { id });
+    const item = await prisma.snippet.findUnique({ where: { id } });
     if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(item);
   } catch (err: any) {
     console.error("[GET /api/snippets/:id] error", err);
-    return NextResponse.json({ error: "Failed to fetch snippet", details: err?.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch snippet", details: err?.message },
+      { status: 500 }
+    );
   }
 }
 
 // UPDATE
 export async function PATCH(req: Request, { params }: Params) {
+  const { id } = await params;
   try {
-    console.log("[PATCH /api/snippets/:id]", { id: params.id });
-    const exists = await prisma.snippet.findUnique({ where: { id: params.id } });
+    console.log("[PATCH /api/snippets/:id]", { id });
+    const exists = await prisma.snippet.findUnique({ where: { id } });
     if (!exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const body = await req.json();
@@ -38,22 +43,29 @@ export async function PATCH(req: Request, { params }: Params) {
       data.html = h;
     }
 
-    const updated = await prisma.snippet.update({ where: { id: params.id }, data });
+    const updated = await prisma.snippet.update({ where: { id }, data });
     return NextResponse.json(updated);
   } catch (err: any) {
     console.error("[PATCH /api/snippets/:id] error", err);
-    return NextResponse.json({ error: "Failed to update snippet", details: err?.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update snippet", details: err?.message },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE
 export async function DELETE(_req: Request, { params }: Params) {
+  const { id } = await params;
   try {
-    console.log("[DELETE /api/snippets/:id]", { id: params.id });
-    await prisma.snippet.delete({ where: { id: params.id } });
+    console.log("[DELETE /api/snippets/:id]", { id });
+    await prisma.snippet.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (err: any) {
     console.error("[DELETE /api/snippets/:id] error", err);
-    return NextResponse.json({ error: "Failed to delete snippet", details: err?.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete snippet", details: err?.message },
+      { status: 500 }
+    );
   }
 }

@@ -1,54 +1,8 @@
-// "use client";
-// import { useState } from "react";
-
-// export default function SaveButton({ getHtml }: { getHtml: () => string }) {
-//   const [status, setStatus] = useState<"idle"|"saving"|"done"|"error">("idle");
-//   const [lastId, setLastId] = useState<string | null>(null);
-
-//   async function handleSave() {
-//     try {
-//       setStatus("saving");
-//       const html = getHtml(); // must return full HTML string (<!DOCTYPE html>... )
-//       const res = await fetch("/api/snippets", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           title: `Court Room Output - ${new Date().toISOString()}`,
-//           html,
-//         }),
-//       });
-//       if (!res.ok) throw new Error(`Save failed: ${res.status}`);
-//       const data = await res.json();
-//       setLastId(data.id);
-//       setStatus("done");
-//       console.log("[SaveButton] saved snippet", data);
-//     } catch (e) {
-//       console.error("[SaveButton] error", e);
-//       setStatus("error");
-//     }
-//   }
-
-//   return (
-//     <div className="flex items-center gap-3">
-//       <button
-//         onClick={handleSave}
-//         disabled={status === "saving"}
-//         className="px-4 py-2 rounded bg-black text-white"
-//       >
-//         {status === "saving" ? "Saving..." : "Save to DB"}
-//       </button>
-//       {status === "done" && lastId && <span>Saved ✓ (id: {lastId})</span>}
-//       {status === "error" && <span>Save failed. Try again.</span>}
-//     </div>
-//   );
-// }
 "use client";
 import { useState } from "react";
 
 type Props = {
-  /** Must return a FULL HTML document string (<!DOCTYPE html> ... </html>) */
   getHtml: () => string;
-  /** Optional: called after a successful save with the created id */
   onSaved?: (id: string) => void;
 };
 
